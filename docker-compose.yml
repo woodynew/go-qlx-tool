@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  go-qlx-tool:
+    container_name: go-qlx-tool_1
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro  #实体机需要先执行   echo "Asia/Shanghai" > /etc/timezone 
+      - /mydata/go/qulaxin/go-qlx-tool:/go/src/app
+      - /mydata/www/:/mydata/www/
+    ports:
+      - "9011:9011"
