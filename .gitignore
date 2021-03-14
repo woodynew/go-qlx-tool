@@ -9,3 +9,5 @@ beego.iml
 lastupdate.tmp
 
 go-qlx-tool
+
+/export

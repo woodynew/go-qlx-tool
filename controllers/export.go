@@ -23,10 +23,15 @@ type ExportController struct {
 }
 
 func (c *ExportController) ExportTest() {
+	curenv, _ := beego.AppConfig.String("runmode")
+	fmt.Println(curenv)
+
 	c.Ctx.WriteString("200")
 	return
 }
 func (c *ExportController) ExportSuningB2() {
+	curEnv, _ := beego.AppConfig.String("runmode")
+
 	startTime := c.GetString("start_time")
 	endTime := c.GetString("end_time")
 	if startTime == "" || endTime == "" {
@@ -46,37 +51,70 @@ func (c *ExportController) ExportSuningB2() {
 
 	forNum := 0
 	for {
-		fmt.Println(pageId)
+		fmt.Println(pageId + cast.ToString(forNum))
 
-		apiUrl := "http://172.28.165.193:10181/export-tool-api/businessnewbuyerQuery"
-		// apiUrl := "http://localhost:9502/export-tool-api/businessnewbuyerQuery"
-		req := httplib.Get(apiUrl)
-		req.Param("start_time", startTime)
-		req.Param("end_time", endTime)
-		req.Param("page_id", pageId)
-		// req.Debug(true)
-		// req.Response()
+		apiUrl := ""
+		if curEnv == "dev" {
+			// apiUrl := "https://qulaxin.cn/export-tool-api/businessnewbuyerQuery"
+			apiUrl = "http://localhost:9512/export-tool-api/businessnewbuyerQuery"
+		} else {
+			apiUrl = "http://172.28.165.193:10181/export-tool-api/businessnewbuyerQuery"
+		}
 
-		str, err := req.String()
-		if err != nil {
-			c.Ctx.WriteString("ERROR")
+		resultStr := ""
+		resultMap := make(map[string]interface{})
+
+		reqApiCount := 0
+		for {
+			if reqApiCount > 3 {
+				c.Ctx.WriteString("接口最大次数请求错误")
+				return
+			}
+			req := httplib.Get(apiUrl)
+			req.Param("start_time", startTime)
+			req.Param("end_time", endTime)
+			req.Param("page_id", pageId)
+			// req.Debug(true)
+			// req.Response()
+
+			str, err := req.String()
+			if err != nil {
+				c.Ctx.WriteString("ERROR")
+				return
+			}
+
+			resultMap = iutils.JSONToMap(str)
+			if nil == resultMap {
+				c.Ctx.WriteString("数据解析错误：" + str)
+				return
+			}
+
+			value, ok := resultMap["ret"]
+			if !ok {
+				c.Ctx.WriteString("响应错误：" + str)
+				return
+			}
+			if !reflect.ValueOf(value).Bool() {
+				value, _ := resultMap["error"]
+				if cast.ToString(value) == "1099" {
+					reqApiCount++
+					continue
+				}
+				c.Ctx.WriteString("响应错误：" + str)
+				return
+			}
+			resultStr = str
+			break
+		}
+
+		if resultStr == "" {
+			c.Ctx.WriteString("无数据")
 			return
 		}
 
-		resultMap := iutils.JSONToMap(str)
-		if nil == resultMap {
-			c.Ctx.WriteString("数据解析错误：" + str)
-			return
-		}
-
-		value, ok := resultMap["error"]
+		value, ok := resultMap["data"]
 		if !ok {
-			c.Ctx.WriteString("响应错误：" + str)
-			return
-		}
-		value, ok = resultMap["data"]
-		if !ok {
-			c.Ctx.WriteString("数据错误：" + str)
+			c.Ctx.WriteString("数据错误：" + resultStr)
 			return
 		}
 
@@ -85,7 +123,7 @@ func (c *ExportController) ExportSuningB2() {
 		pageId = cast.ToString(dataMap["page_id"])
 
 		if forNum == 0 {
-			value, ok = dataMap["export_title"]
+			value, _ = dataMap["export_title"]
 
 			exportTitle := reflect.ValueOf(value)
 
@@ -95,7 +133,7 @@ func (c *ExportController) ExportSuningB2() {
 			}
 		}
 
-		value, ok = dataMap["export_data"]
+		value, _ = dataMap["export_data"]
 		exportData := reflect.ValueOf(value)
 
 		if exportData.Len() < 1 {
@@ -128,7 +166,11 @@ func (c *ExportController) ExportSuningB2() {
 	if !utils.FileExists(path) {
 		os.MkdirAll(path, os.ModePerm)
 	}
-	filename := path + cast.ToString(time.Now().Unix()) + ".xlsx"
+
+	startT, _ := time.Parse("2006-01-02 15:04:05", startTime)
+	endT, _ := time.Parse("2006-01-02 15:04:05", endTime)
+	filename := path + "suningb2_" + startT.Format("2006_01_02_15_04_05") + "-" + endT.Format("2006_01_02_15_04_05") + ".xlsx"
+
 	file.Save(filename)
 
 	c.Ctx.Output.Download(filename)
