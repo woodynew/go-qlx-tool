@@ -23,14 +23,22 @@ type ExportController struct {
 }
 
 func (c *ExportController) ExportTest() {
-	curenv, _ := beego.AppConfig.String("runmode")
-	fmt.Println(curenv)
 
+	configQlxApiUrl, _ := beego.AppConfig.String("qulaxinapiurl1")
+	if configQlxApiUrl == "" {
+		c.Ctx.WriteString("qulaxinapiurl")
+		return
+	}
 	c.Ctx.WriteString("200")
 	return
 }
 func (c *ExportController) ExportSuningB2() {
-	curEnv, _ := beego.AppConfig.String("runmode")
+	// configEnv, _ := beego.AppConfig.String("runmode")
+	configQlxApiUrl, _ := beego.AppConfig.String("qulaxinapihost")
+	if configQlxApiUrl == "" {
+		c.Ctx.WriteString("缺少配置：qulaxinapihost")
+		return
+	}
 
 	startTime := c.GetString("start_time")
 	endTime := c.GetString("end_time")
@@ -53,13 +61,7 @@ func (c *ExportController) ExportSuningB2() {
 	for {
 		fmt.Println(pageId + cast.ToString(forNum))
 
-		apiUrl := ""
-		if curEnv == "dev" {
-			// apiUrl := "https://qulaxin.cn/export-tool-api/businessnewbuyerQuery"
-			apiUrl = "http://localhost:9512/export-tool-api/businessnewbuyerQuery"
-		} else {
-			apiUrl = "http://172.28.165.193:10181/export-tool-api/businessnewbuyerQuery"
-		}
+		apiUrl := configQlxApiUrl + "/export-tool-api/businessnewbuyerQuery"
 
 		resultStr := ""
 		resultMap := make(map[string]interface{})
@@ -98,6 +100,7 @@ func (c *ExportController) ExportSuningB2() {
 				value, _ := resultMap["error"]
 				if cast.ToString(value) == "1099" {
 					reqApiCount++
+					time.Sleep(time.Second)
 					continue
 				}
 				c.Ctx.WriteString("响应错误：" + str)
