@@ -1,15 +1,17 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"reflect"
 
 	iutils "go-qlx-tool/utils"
 
-	beego "github.com/beego/beego/v2/server/web"
-
 	"time"
+
+	"github.com/beego/beego/v2/client/cache"
+	beego "github.com/beego/beego/v2/server/web"
 
 	"github.com/beego/beego/v2/client/httplib"
 	"github.com/beego/beego/v2/core/utils"
@@ -17,22 +19,50 @@ import (
 	"github.com/tealeg/xlsx"
 )
 
+var m_bm cache.Cache
+
 // ExportController operations for Export
 type ExportController struct {
 	beego.Controller
 }
 
 func (c *ExportController) ExportTest() {
-
-	configQlxApiUrl, _ := beego.AppConfig.String("qulaxinapiurl1")
-	if configQlxApiUrl == "" {
-		c.Ctx.WriteString("qulaxinapiurl")
-		return
-	}
 	c.Ctx.WriteString("200")
 	return
 }
+
+func (c *ExportController) GetExportSuningB2() {
+	if m_bm == nil {
+		m_bm, _ = cache.NewCache("memory", `{"interval":60}`)
+	}
+
+	//TODO 进度条
+	astaxie1, _ := m_bm.Get(context.TODO(), "astaxie")
+	m_bm.Put(context.TODO(), "astaxie", 1, 10*time.Second)
+	// bm.IsExist(context.TODO(), "astaxie")
+	// bm.Delete(context.TODO(), "astaxie")
+
+	fmt.Println(astaxie1)
+
+	c.Data["Website"] = "beego.me"
+	c.Data["Email"] = "astaxie@gmail.com"
+	c.TplName = "export/suningb2.tpl"
+}
+
 func (c *ExportController) ExportSuningB2() {
+	if m_bm == nil {
+		m_bm, _ = cache.NewCache("memory", `{"interval":60}`)
+	}
+
+	ExportSuningB2_LOCK, _ := m_bm.Get(context.TODO(), "ExportSuningB2_LOCK")
+	if ExportSuningB2_LOCK == nil {
+		m_bm.Put(context.TODO(), "ExportSuningB2_LOCK", 1, 60*time.Second)
+	} else {
+		c.Redirect("/error?msg=重复执行请稍后...&returl=/qulaxin", 302)
+		// c.Ctx.WriteString("重复执行请稍后...")
+		return
+	}
+
 	// configEnv, _ := beego.AppConfig.String("runmode")
 	configQlxApiUrl, _ := beego.AppConfig.String("qulaxinapihost")
 	if configQlxApiUrl == "" {
@@ -142,6 +172,7 @@ func (c *ExportController) ExportSuningB2() {
 		if exportData.Len() < 1 {
 			break
 		}
+		fmt.Println(exportData.Len())
 
 		for i := 0; i < exportData.Len(); i++ {
 			row = sheet.AddRow()

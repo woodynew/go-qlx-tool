@@ -9,6 +9,8 @@ import (
 
 func init() {
 	beego.Router("/", &controllers.MainController{})
+	beego.Router("/qulaxin", &controllers.MainController{}, "get:Qulaxin")
+	beego.Router("/error", &controllers.MainController{}, "get:Error")
 
 	beego.Get("/test", func(ctx *context.Context) {
 		ctx.Output.Body([]byte("hello world"))
@@ -25,6 +27,8 @@ func init() {
 	beego.AddNamespace(ns)
 	beego.AddNamespace(beego.NewNamespace("/export",
 		beego.NSRouter("/test", &controllers.ExportController{}, "get:ExportTest"),
+
+		beego.NSRouter("/get-suning-b2", &controllers.ExportController{}, "get:GetExportSuningB2"),
 		beego.NSRouter("/export-suning-b2", &controllers.ExportController{}, "get:ExportSuningB2"),
 	))
 
