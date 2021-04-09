@@ -33,7 +33,7 @@ func (c *ExportController) ExportTest() {
 
 	// fmt.Println(iutils.GetFileRootPath(picName))
 
-	// client, err := oss.New("https://oss-cn-hangzhou.aliyuncs.com", "LTAI4GJdSz44ji9hGUxUT9RN", "03zgvRQ3zq2xj8uggPvOXsThVCcEhM")
+	// client, err := oss.New("https://oss-cn-hangzhou.aliyuncs.com", "", "")
 	// if err != nil {
 	// 	// HandleError(err)
 	// 	fmt.Println(err)
