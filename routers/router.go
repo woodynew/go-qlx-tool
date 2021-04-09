@@ -30,6 +30,7 @@ func init() {
 
 		beego.NSRouter("/get-suning-b2", &controllers.ExportController{}, "get:GetExportSuningB2"),
 		beego.NSRouter("/export-suning-b2", &controllers.ExportController{}, "get:ExportSuningB2"),
+		beego.NSRouter("/external-import-data", &controllers.ExportController{}, "get:ExportExternalImportData"),
 	))
 
 }
