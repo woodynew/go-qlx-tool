@@ -3,13 +3,19 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <script src="https://unpkg.com/vue@next"></script>
-    <!-- import CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/element-plus/lib/theme-chalk/index.css">
-    <!-- import JavaScript -->
-    <script src="https://unpkg.com/element-plus/lib/index.full.js"></script>
-    <script src="https://unpkg.com/element-plus/lib/umd/locale/zh-cn.js"></script>
-    <script src="https://unpkg.com/dayjs/locale/zh-cn.js"></script>
+
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus/dist/index.css" />
+    <!-- Import Vue 3 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
+    <!-- Import component library -->
+    <script src="https://cdn.jsdelivr.net/npm/element-plus"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-plus/lib/locale/lang/zh-cn.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+
+    <!-- <script src="https://unpkg.com/dayjs/locale/zh-cn.js"></script> -->
 
     <script src="/static/js/utils.js"></script>
 
@@ -133,10 +139,11 @@
                 }
             },
         };
-        ElementPlus.locale(ElementPlus.lang.zhCn)
 
         const app = Vue.createApp(App);
-        app.use(ElementPlus);
+        app.use(ElementPlus, {
+            locale: zhCn,
+        });
         app.mount("#app");
 
     </script>
